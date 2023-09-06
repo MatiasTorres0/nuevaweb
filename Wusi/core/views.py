@@ -6,6 +6,7 @@ import barcode
 from barcode import generate
 from barcode.writer import ImageWriter
 from io import BytesIO
+from .forms import ProductoForm
 from .models import Producto, Categoria, Boleta, Conversacion, Mensaje, Tamano, Unidad_medida, VariantePrecio, Ticket, Noticia, Region, Ciudad, Comuna, Promocion
 # Create your views here.
 
@@ -14,13 +15,23 @@ def index(request):
     context = {'categorias': categorias}
     return render(request, 'core/index.html', context)
 
-def base(request):
+def base():
     categorias = Categoria.objects.all()
-    return {'categorias': categorias}
+    context = {'categorias': categorias}
+    return context
 
 
-def detalle(request):
-    return render(request, 'core/detalle.html')
+
+def detalle(request, categoria_id):
+    categoria = Categoria.objects.get(id=categoria_id)
+    productos = Producto.objects.filter(categoria=categoria)
+    categorias = Categoria.objects.all()
+    context = {
+        'categorias': categorias,
+        'categoria': categoria,
+        'productos': productos
+    }
+    return render(request, 'core/detalle.html', context)
 
 def contacto(request):
     return render(request, 'core/contacto.html')
@@ -36,9 +47,13 @@ def productos_por_categoria(request, categoria_id):
     categoria = Categoria.objects.get(id=categoria_id)
     productos = Producto.objects.filter(categoria=categoria)
     categorias = Categoria.objects.all()
-    context = {'categorias': categorias}
-    context = {'categoria': categoria, 'productos': productos}
+    context = {
+        'categorias': categorias,
+        'categoria': categoria,
+        'productos': productos
+    }
     return render(request, 'core/productos_por_categoria.html', context)
+
 
 
 
@@ -208,3 +223,13 @@ def crear(request):
 
 def creararticulo(request):
     return render(request, "core/creararticulo.html")
+
+
+def nuevo_producto(request):
+    data = {"form": ProductoForm()}
+    if request.method == 'POST':
+        formulario = ProductoForm(request.POST)
+        if formulario.is_valid():
+            formulario.save()
+            data['mensaje'] = "Guardado Correctamente"
+    return render(request, "core/nuevo_producto.html", data)

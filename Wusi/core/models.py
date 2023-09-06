@@ -6,9 +6,17 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 
 class Categoria(models.Model):
     nombre = models.CharField(max_length=100)
-
+    imagen = models.FileField(upload_to='categoria/', blank=True, null=True, verbose_name="Imagen o Video")
+    cantidad_productos = models.PositiveIntegerField(default=0, editable=False)  # Inicialmente, la cantidad es 0
     def __str__(self):
         return self.nombre
+    
+
+class Subcategoria(models.Model):
+    categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE)
+    nombre = models.CharField(max_length=100)
+    def __str__(self):
+        return f'{self.categoria.nombre} - {self.nombre}'
 
 class Unidad_medida(models.Model):
     nombre = models.CharField(max_length=100)
@@ -32,6 +40,7 @@ class Producto(models.Model):
     precio_oferta = models.DecimalField(max_digits=10, decimal_places=2, null=True, validators=[MinValueValidator(0)])
     stock = models.IntegerField( null=True)
     categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE)
+    subcategoria = models.ForeignKey(Subcategoria, on_delete=models.CASCADE, null=True)
     imagen = models.FileField(upload_to='productos/', blank=True, null=True, verbose_name="Imagen o Video")
     unidad_medida = models.ForeignKey(Unidad_medida, on_delete=models.CASCADE, default=None, blank=True, null=True)
     tamano = models.ForeignKey(Tamano, on_delete=models.CASCADE, default=None, blank=True, null=True)
@@ -44,6 +53,16 @@ class Producto(models.Model):
             precio_con_descuento = self.precio - (self.precio * descuento_decimal)
             return round(precio_con_descuento, 2)
         return self.precio
+    def save(self, *args, **kwargs):
+        if not self.pk:  # Si es un producto nuevo
+            self.categoria.cantidad_productos += 1
+            self.categoria.save()
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        self.categoria.cantidad_productos -= 1
+        self.categoria.save()
+        super().delete(*args, **kwargs)
     
     def calificacion_promedio(self):
         calificaciones = Calificacion.objects.filter(producto=self)

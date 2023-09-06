@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Categoria, Producto, Boleta, Conversacion, Mensaje, Tamano, Unidad_medida, VariantePrecio, Ticket, Reparto, Ciudad, Comuna, Noticia, Region, Calificacion
+from .models import Categoria, Producto, Boleta, Conversacion, Mensaje, Tamano, Unidad_medida, VariantePrecio, Ticket, Reparto, Ciudad, Comuna, Noticia, Region, Calificacion, Subcategoria
 # Register your models here.
 
 admin.site.register(Categoria)
@@ -17,3 +17,4 @@ admin.site.register(Ciudad)
 admin.site.register(Comuna)
 admin.site.register(Noticia)
 admin.site.register(Calificacion)
+admin.site.register(Subcategoria)
